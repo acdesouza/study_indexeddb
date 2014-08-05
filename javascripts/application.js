@@ -21,11 +21,11 @@ var IndexedDbApp = function() {
             var putRequest = indexedDB.open(databaseName, version);
 
             putRequest.onsuccess = function() {
-                console.log("[DEBUG] Put, on objectStore: ["+ options.store +"].");
+                console.log("[DEBUG] Put, on objectStore: ["+ options.objectStoreName +"].");
 
                 var db = putRequest.result;
-                var tx = db.transaction(options.store, "readwrite");
-                var store = tx.objectStore(options.store);
+                var tx = db.transaction(options.objectStoreName, "readwrite");
+                var store = tx.objectStore(options.objectStoreName);
                 options.success(store);
 
                 tx.oncomplete = function() {
@@ -35,9 +35,9 @@ var IndexedDbApp = function() {
         };
 
         return {
-            put: function(store, data) {
+            put: function(objectStoreName, data) {
                 open({
-                    store: store,
+                    objectStoreName: objectStoreName,
                     success: function(store){
                         store.put(data);
                     }
