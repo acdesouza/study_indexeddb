@@ -45,6 +45,17 @@ var IndexedDbApp = function() {
                 })
             },
 
+            destroy: function(objectStoreName, id, callbacks) {
+                console.log("[DEBUG] delete, on objectStore: ["+ objectStoreName +"], id: "+ id +".");
+                open({
+                    objectStoreName: objectStoreName,
+                    success: function(store) {
+                        store.delete(id);
+                        callbacks.success();
+                    }
+                });
+            },
+
             forEachIn: function(objectStoreName, callbacks) {
                 console.log("[DEBUG] forEachIn objectStore: ["+ objectStoreName +"].");
                 open({
@@ -87,6 +98,10 @@ var IndexedDbApp = function() {
                 database.put(OBJECT_STORE_NAME, attrs, callbacks);
             },
 
+            destroy: function(callbacks) {
+                database.destroy(OBJECT_STORE_NAME, id, callbacks);
+            },
+
             forEachIn: function(callbacks) {
                 database.forEachIn(OBJECT_STORE_NAME, callbacks);
             }
@@ -94,14 +109,26 @@ var IndexedDbApp = function() {
     };
 
     var custumer_controller = function() {
-        var showPersistedCustumers = function(custumer) {
-            if(custumer !== undefined) {
+        var showPersistedCustumers = function(custumerObj) {
+            if(custumerObj !== undefined) {
                 var custumersTableBody = document.getElementById('custumers').tBodies[0];
                 var newCustumerRow = custumersTableBody.insertRow();
                 var custumerName = newCustumerRow.insertCell(0);
                 var custumerPhone = newCustumerRow.insertCell(1);
-                custumerName.innerHTML = custumer.name;
-                custumerPhone.innerHTML = custumer.phone;
+                var custumerDelete = newCustumerRow.insertCell(2);
+                var deleteButton = document.createElement("BUTTON");
+                deleteButton.innerHTML = "X";
+                deleteButton.addEventListener("click", function() {
+                    custumer({id: custumerObj.id}).destroy({
+                        success: function() {
+                            custumersTableBody.deleteRow(newCustumerRow.rowIndex-1);
+                        }
+                    });
+                });
+
+                custumerName.innerHTML = custumerObj.name;
+                custumerPhone.innerHTML = custumerObj.phone;
+                custumerDelete.appendChild(deleteButton);
             }
         };
 
