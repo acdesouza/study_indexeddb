@@ -18,12 +18,11 @@ var IndexedDbApp = function() {
         };
 
         function open(options){
-            var putRequest = indexedDB.open(databaseName, version);
+            var request = indexedDB.open(databaseName, version);
 
-            putRequest.onsuccess = function() {
-                console.log("[DEBUG] Put, on objectStore: ["+ options.objectStoreName +"].");
+            request.onsuccess = function() {
 
-                var db = putRequest.result;
+                var db = request.result;
                 var tx = db.transaction(options.objectStoreName, "readwrite");
                 var store = tx.objectStore(options.objectStoreName);
                 options.success(store);
@@ -35,15 +34,43 @@ var IndexedDbApp = function() {
         };
 
         return {
-            put: function(objectStoreName, data) {
+            put: function(objectStoreName, data, callbacks) {
+                console.log("[DEBUG] put on objectStore: ["+ objectStoreName +"].");
                 open({
                     objectStoreName: objectStoreName,
                     success: function(store){
                         store.put(data);
+                        callbacks.success(data);
                     }
                 })
+            },
+
+            forEachIn: function(objectStoreName, callbacks) {
+                console.log("[DEBUG] forEachIn objectStore: ["+ objectStoreName +"].");
+                open({
+                    objectStoreName: objectStoreName,
+                    success: function(store) {
+                        // Get everything in the store;
+                        var keyRange = IDBKeyRange.lowerBound(0);
+                        var cursorRequest = store.openCursor(keyRange);
+
+                        cursorRequest.onsuccess = function(e) {
+                            var result = e.target.result;
+                            if(!!result == false)
+                                return;
+
+                            var element = result.value;
+                            console.log("[DEBUG] forEachIn - value: [");
+                            console.log(element);
+                            console.log("]");
+                            callbacks.success(element);
+
+                            result.continue();
+                        };
+                    }
+                });
             }
-        }
+        };
     }();
 
     var custumer = function(attrs) {
@@ -53,26 +80,63 @@ var IndexedDbApp = function() {
         var phone = attrs.phone;
 
         return {
-            save: function() {
+            save: function(callbacks) {
                 console.log("Customer data: [");
                 console.log(attrs);
                 console.log("]");
-                database.put(OBJECT_STORE_NAME, attrs);
+                database.put(OBJECT_STORE_NAME, attrs, callbacks);
+            },
+
+            forEachIn: function(callbacks) {
+                database.forEachIn(OBJECT_STORE_NAME, callbacks);
             }
         }
     };
 
-    var custumer_controller = {
-        bindEvents: function(){
+    var custumer_controller = function() {
+        var showPersistedCustumers = function(custumer) {
+            if(custumer !== undefined) {
+                var custumersTableBody = document.getElementById('custumers').tBodies[0];
+                var newCustumerRow = custumersTableBody.insertRow();
+                var custumerName = newCustumerRow.insertCell(0);
+                var custumerPhone = newCustumerRow.insertCell(1);
+                custumerName.innerHTML = custumer.name;
+                custumerPhone.innerHTML = custumer.phone;
+            }
+        };
+
+        var bindEvents = function (){
             var custumerSaveButton = document.getElementById('create_custumer');
             custumerSaveButton.addEventListener("click", function() {
                 custumer({
                     name: document.getElementById('name').value,
                     phone:  document.getElementById('phone').value
-                }).save();
+                }).save({
+                    success: function(custumer) {
+                        showPersistedCustumers(custumer);
+                        document.getElementById('name').value = "";
+                        document.getElementById('phone').value = "";
+                    }
+                });
+
             });
-        }
+
+            showPersistedCustumers();
+        };
+
+        return {
+            open: function() {
+                custumer({}).forEachIn({
+                    success: function(element) {
+                        showPersistedCustumers(element);
+                    }
+                });
+
+                bindEvents();
+            },
+
+        };
     };
 
-    custumer_controller.bindEvents();
+    custumer_controller().open();
 }();
