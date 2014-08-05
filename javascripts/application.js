@@ -16,5 +16,63 @@ var IndexedDbApp = function() {
             var db = requestCreateDatabase.result;
             db.close();
         };
+
+        function open(options){
+            var putRequest = indexedDB.open(databaseName, version);
+
+            putRequest.onsuccess = function() {
+                console.log("[DEBUG] Put, on objectStore: ["+ options.store +"].");
+
+                var db = putRequest.result;
+                var tx = db.transaction(options.store, "readwrite");
+                var store = tx.objectStore(options.store);
+                options.success(store);
+
+                tx.oncomplete = function() {
+                    db.close();
+                };
+            };
+        };
+
+        return {
+            put: function(store, data) {
+                open({
+                    store: store,
+                    success: function(store){
+                        store.put(data);
+                    }
+                })
+            }
+        }
     }();
+
+    var custumer = function(attrs) {
+        var OBJECT_STORE_NAME = "custumers";
+        var id    = attrs.id === undefined ? null : attrs.id;
+        var name  = attrs.name;
+        var phone = attrs.phone;
+
+        return {
+            save: function() {
+                console.log("Customer data: [");
+                console.log(attrs);
+                console.log("]");
+                database.put(OBJECT_STORE_NAME, attrs);
+            }
+        }
+    };
+
+    var custumer_controller = {
+        bindEvents: function(){
+            var custumerSaveButton = document.getElementById('create_custumer');
+            custumerSaveButton.addEventListener("click", function() {
+                custumer({
+                    name: document.getElementById('name').value,
+                    phone:  document.getElementById('phone').value
+                }).save();
+            });
+        }
+    };
+
+    custumer_controller.bindEvents();
 }();
