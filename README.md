@@ -14,4 +14,4 @@ Application example to IndexedDB.
 
 ## Would you like to know more?
 
-[Texto introdutório sobre o IndexedDB](http://www.beyondclick.com.br/2014/08/02/indexeddb-banco-de-dados-js-client-side.html)
+[Texto introdutório sobre o IndexedDB](http://bit.ly/1qWagK2)
