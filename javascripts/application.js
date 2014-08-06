@@ -64,7 +64,9 @@ var IndexedDbApp = function() {
                 open({
                     objectStoreName: objectStoreName,
                     operation: function(store) {
-                        store.delete(id);
+                        return store.delete(id);
+                    },
+                    success: function(id) {
                         callbacks.success();
                     }
                 });
@@ -155,7 +157,9 @@ var IndexedDbApp = function() {
                 var deleteButton = document.createElement("BUTTON");
                 deleteButton.innerHTML = "X";
                 deleteButton.addEventListener("click", function() {
-                    custumer({id: custumerObj.id}).destroy({
+                    custumer({
+                        id: custumerObj.id
+                    }).destroy({
                         success: function() {
                             custumersTableBody.deleteRow(newCustumerRow.rowIndex-1);
                         }
