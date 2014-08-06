@@ -100,17 +100,19 @@ var IndexedDbApp = function() {
 
     var custumer = function(attrs) {
         var OBJECT_STORE_NAME = "custumers";
-        var id    = attrs.id === undefined ? null : attrs.id;
-        var name  = attrs.name;
-        var phone = attrs.phone;
 
         return {
             save: function(callbacks) {
+                if(attrs.id === undefined || attrs.id === null || attrs.id === "") {
+                    delete attrs.id;
+                } else {
+                    attrs.id = parseInt(attrs.id);
+                }
                 database.put(OBJECT_STORE_NAME, attrs, callbacks);
             },
 
             destroy: function(callbacks) {
-                database.destroy(OBJECT_STORE_NAME, id, callbacks);
+                database.destroy(OBJECT_STORE_NAME, attrs.id, callbacks);
             },
 
             forEachIn: function(callbacks) {
@@ -122,11 +124,34 @@ var IndexedDbApp = function() {
     var custumer_controller = function() {
         var showPersistedCustumers = function(custumerObj) {
             if(custumerObj !== undefined) {
+                var existingCustumersRow = document.getElementById("custumer_"+ custumerObj.id);
+                if(existingCustumersRow !== null){
+                    existingCustumersRow.remove();
+                }
+
                 var custumersTableBody = document.getElementById('custumers').tBodies[0];
                 var newCustumerRow = custumersTableBody.insertRow();
-                var custumerName = newCustumerRow.insertCell(0);
-                var custumerPhone = newCustumerRow.insertCell(1);
-                var custumerDelete = newCustumerRow.insertCell(2);
+                newCustumerRow.id  = "custumer_"+ custumerObj.id;
+
+                var cellsCount = 0;
+
+                var custumerName = newCustumerRow.insertCell(cellsCount++);
+                custumerName.innerHTML = custumerObj.name;
+
+                var custumerPhone = newCustumerRow.insertCell(cellsCount++);
+                custumerPhone.innerHTML = custumerObj.phone;
+
+                var custumerEdit = newCustumerRow.insertCell(cellsCount++);
+                var editButton = document.createElement("BUTTON");
+                editButton.innerHTML = "Edit";
+                editButton.addEventListener("click", function() {
+                    document.getElementById('id').value = custumerObj.id;
+                    document.getElementById('name').value = custumerObj.name;
+                    document.getElementById('phone').value = custumerObj.phone;
+                });
+                custumerEdit.appendChild(editButton);
+
+                var custumerDelete = newCustumerRow.insertCell(cellsCount++);
                 var deleteButton = document.createElement("BUTTON");
                 deleteButton.innerHTML = "X";
                 deleteButton.addEventListener("click", function() {
@@ -136,9 +161,6 @@ var IndexedDbApp = function() {
                         }
                     });
                 });
-
-                custumerName.innerHTML = custumerObj.name;
-                custumerPhone.innerHTML = custumerObj.phone;
                 custumerDelete.appendChild(deleteButton);
             }
         };
@@ -147,11 +169,13 @@ var IndexedDbApp = function() {
             var custumerSaveButton = document.getElementById('create_custumer');
             custumerSaveButton.addEventListener("click", function() {
                 custumer({
+                    id: document.getElementById('id').value,
                     name: document.getElementById('name').value,
                     phone:  document.getElementById('phone').value
                 }).save({
                     success: function(custumer) {
                         showPersistedCustumers(custumer);
+                        document.getElementById('id').value = "";
                         document.getElementById('name').value = "";
                         document.getElementById('phone').value = "";
                     }
