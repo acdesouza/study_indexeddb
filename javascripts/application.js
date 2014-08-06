@@ -18,16 +18,22 @@ var IndexedDbApp = function() {
         };
 
         function open(options){
-            var request = indexedDB.open(databaseName, version);
+            var requestOpenDb = indexedDB.open(databaseName, version);
 
-            request.onsuccess = function() {
+            requestOpenDb.onsuccess = function() {
 
-                var db = request.result;
+                var db = requestOpenDb.result;
                 var tx = db.transaction(options.objectStoreName, "readwrite");
                 var store = tx.objectStore(options.objectStoreName);
-                options.success(store);
 
-                tx.oncomplete = function() {
+                var requestedOperation = options.operation(store);
+                if( requestedOperation !== undefined ) {
+                    requestedOperation.onsuccess = function(e) {
+                        options.success(e.target.result);
+                    };
+                }
+
+                tx.oncomplete = function(e) {
                     db.close();
                 };
             };
@@ -38,8 +44,16 @@ var IndexedDbApp = function() {
                 console.log("[DEBUG] put on objectStore: ["+ objectStoreName +"].");
                 open({
                     objectStoreName: objectStoreName,
-                    success: function(store){
-                        store.put(data);
+                    operation: function(store){
+                        return store.put(data);
+                    },
+                    success: function(id) {
+                        data.id = id;
+
+                        console.log("[DEBUG] new customer: [");
+                        console.log(data);
+                        console.log("]");
+
                         callbacks.success(data);
                     }
                 })
@@ -49,7 +63,7 @@ var IndexedDbApp = function() {
                 console.log("[DEBUG] delete, on objectStore: ["+ objectStoreName +"], id: "+ id +".");
                 open({
                     objectStoreName: objectStoreName,
-                    success: function(store) {
+                    operation: function(store) {
                         store.delete(id);
                         callbacks.success();
                     }
@@ -60,7 +74,7 @@ var IndexedDbApp = function() {
                 console.log("[DEBUG] forEachIn objectStore: ["+ objectStoreName +"].");
                 open({
                     objectStoreName: objectStoreName,
-                    success: function(store) {
+                    operation: function(store) {
                         // Get everything in the store;
                         var keyRange = IDBKeyRange.lowerBound(0);
                         var cursorRequest = store.openCursor(keyRange);
@@ -92,9 +106,6 @@ var IndexedDbApp = function() {
 
         return {
             save: function(callbacks) {
-                console.log("Customer data: [");
-                console.log(attrs);
-                console.log("]");
                 database.put(OBJECT_STORE_NAME, attrs, callbacks);
             },
 
