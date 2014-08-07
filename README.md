@@ -15,3 +15,15 @@ Application example to IndexedDB.
 ## Would you like to know more?
 
 [Texto introdutório sobre o IndexedDB](http://bit.ly/1qWagK2)
+
+## TODO
+
+  1. Automated tests
+    * [QUnit](http://qunitjs.com/intro/#building-unit-tests)
+    * [IndexedDBShim tests](https://github.com/axemclion/IndexedDBShim). Probably a useful guide.
+    
+  1. Use Observable to simplify API:
+    * Creates a Hash representing dataset;
+    * Observe the Hash;
+    * Apply actions on Hash to IndexedDB.
+    * [JavaScript Observe](http://www.html5rocks.com/en/tutorials/es7/observe/)
