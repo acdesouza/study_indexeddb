@@ -106,6 +106,22 @@ BaseModel = function(databaseName, version) {
                 var m = model(attrs);
 
                 m['database'] = database;
+                m['save'] = function(callbacks) {
+                    if(attrs.id === undefined || attrs.id === null || attrs.id === "") {
+                        delete attrs.id;
+                    } else {
+                        attrs.id = parseInt(attrs.id);
+                    }
+                    database.put(m.getObjectStoreName(), attrs, callbacks);
+                },
+
+                m['destroy'] = function(callbacks) {
+                    database.destroy(m.getObjectStoreName(), attrs.id, callbacks);
+                },
+
+                m['forEachIn'] = function(callbacks) {
+                    database.forEachIn(m.getObjectStoreName(), callbacks);
+                }
 
                 return m;
             }
