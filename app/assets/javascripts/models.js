@@ -1,22 +1,5 @@
-var Models = function(){
+var Models = function(databaseName, version) {
     var database = function() {
-        var databaseName = "IndexedDbApp";
-        var version = 1;
-        var db = null;
-
-        var requestCreateDatabase = indexedDB.open(databaseName, version);
-        requestCreateDatabase.onupgradeneeded = function(event) {
-            var db = requestCreateDatabase.result;
-            if (event.oldVersion < 1) {
-                console.log("[DEBUG] Creates custumers object store.");
-                var custumers = db.createObjectStore("custumers", {keyPath: "id", autoIncrement: true});
-            }
-        };
-        requestCreateDatabase.onsuccess = function() {
-            var db = requestCreateDatabase.result;
-            db.close();
-        };
-
         function open(options){
             var requestOpenDb = indexedDB.open(databaseName, version);
 
@@ -40,6 +23,19 @@ var Models = function(){
         };
 
         return {
+            migrate: function(migration) {
+                var requestCreateDatabase = indexedDB.open(databaseName, version);
+                requestCreateDatabase.onupgradeneeded = function(event) {
+                    var db = requestCreateDatabase.result;
+
+                    migration(event);
+                };
+                requestCreateDatabase.onsuccess = function() {
+                    var db = requestCreateDatabase.result;
+                    db.close();
+                };
+            },
+
             put: function(objectStoreName, data, callbacks) {
                 console.log("[DEBUG] put on objectStore: ["+ objectStoreName +"].");
                 open({
@@ -100,30 +96,49 @@ var Models = function(){
         };
     }();
 
-    var custumer = function(attrs) {
-        var OBJECT_STORE_NAME = "custumers";
+    return {
+        add: function(modelName, model) {
+            if(model.migration) {
+                database.migrate(model.migration);
+            }
 
-        return {
-            save: function(callbacks) {
-                if(attrs.id === undefined || attrs.id === null || attrs.id === "") {
-                    delete attrs.id;
-                } else {
-                    attrs.id = parseInt(attrs.id);
-                }
-                database.put(OBJECT_STORE_NAME, attrs, callbacks);
-            },
+            this[modelName] = function(attrs) {
+                var m = model(attrs);
 
-            destroy: function(callbacks) {
-                database.destroy(OBJECT_STORE_NAME, attrs.id, callbacks);
-            },
+                m['database'] = database;
 
-            forEachIn: function(callbacks) {
-                database.forEachIn(OBJECT_STORE_NAME, callbacks);
+                return m;
             }
         }
     };
+}("IndexedDbApp", 1);
+
+Models.add('custumer', function(attrs) {
+    var OBJECT_STORE_NAME = "custumers";
 
     return {
-        custumer: custumer
+        migration: function(event) {
+            if (event.oldVersion < 1) {
+                console.log("[DEBUG] Creates custumers object store.");
+                var custumers = db.createObjectStore(OBJECT_STORE_NAME, {keyPath: "id", autoIncrement: true});
+            }
+        },
+
+        save: function(callbacks) {
+            if(attrs.id === undefined || attrs.id === null || attrs.id === "") {
+                delete attrs.id;
+            } else {
+                attrs.id = parseInt(attrs.id);
+            }
+            this.database.put(OBJECT_STORE_NAME, attrs, callbacks);
+        },
+
+        destroy: function(callbacks) {
+            this.database.destroy(OBJECT_STORE_NAME, attrs.id, callbacks);
+        },
+
+        forEachIn: function(callbacks) {
+            this.database.forEachIn(OBJECT_STORE_NAME, callbacks);
+        }
     }
-}();
+});
