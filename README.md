@@ -20,8 +20,9 @@ Application example to IndexedDB.
 
   1. Automated tests
     * [QUnit](http://qunitjs.com/intro/#building-unit-tests)
+    * [Chai, Mocha](http://blog.codeship.io/2014/01/22/testing-frontend-javascript-code-using-mocha-chai-and-sinon.html)
     * [IndexedDBShim tests](https://github.com/axemclion/IndexedDBShim). Probably a useful guide.
-    
+
   1. Use Observable to simplify API:
     * Creates a Hash representing dataset;
     * Observe the Hash;
