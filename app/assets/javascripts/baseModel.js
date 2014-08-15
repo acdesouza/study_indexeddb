@@ -1,5 +1,16 @@
-BaseModel = function(databaseName, version) {
+BaseModel = function(databaseName, version, migrations) {
     var database = function() {
+        var requestCreateDatabase = indexedDB.open(databaseName, version);
+        requestCreateDatabase.onupgradeneeded = function(event) {
+            var db = requestCreateDatabase.result;
+
+            migrations(db, event);
+        };
+        requestCreateDatabase.onsuccess = function() {
+            var db = requestCreateDatabase.result;
+            db.close();
+        };
+
         function open(options){
             var requestOpenDb = indexedDB.open(databaseName, version);
 
@@ -23,19 +34,6 @@ BaseModel = function(databaseName, version) {
         };
 
         return {
-            migrate: function(migration) {
-                var requestCreateDatabase = indexedDB.open(databaseName, version);
-                requestCreateDatabase.onupgradeneeded = function(event) {
-                    var db = requestCreateDatabase.result;
-
-                    migration(event);
-                };
-                requestCreateDatabase.onsuccess = function() {
-                    var db = requestCreateDatabase.result;
-                    db.close();
-                };
-            },
-
             put: function(objectStoreName, data, callbacks) {
                 console.log("[DEBUG] put on objectStore: ["+ objectStoreName +"].");
                 open({
@@ -98,10 +96,6 @@ BaseModel = function(databaseName, version) {
 
     return {
         add: function(modelName, model) {
-            if(model.migration) {
-                database.migrate(model.migration);
-            }
-
             this[modelName] = function(attrs) {
                 var m = model(attrs);
 
