@@ -95,26 +95,32 @@ BaseModel = function(databaseName, version, migrations) {
     }();
 
     return {
-        add: function(modelName, model) {
+        add: function(modelName, objectStoreName, model) {
             this[modelName] = function(attrs) {
-                var m = model(attrs);
+                var m = null;
+                if(model) {
+                    m = model(attrs);
+                } else {
+                    m = function(attrs) {
+                        return {};
+                    };
+                }
 
-                m['database'] = database;
                 m['save'] = function(callbacks) {
                     if(attrs.id === undefined || attrs.id === null || attrs.id === "") {
                         delete attrs.id;
                     } else {
                         attrs.id = parseInt(attrs.id);
                     }
-                    database.put(m.getObjectStoreName(), attrs, callbacks);
+                    database.put(objectStoreName, attrs, callbacks);
                 },
 
                 m['destroy'] = function(callbacks) {
-                    database.destroy(m.getObjectStoreName(), attrs.id, callbacks);
+                    database.destroy(objectStoreName, attrs.id, callbacks);
                 },
 
                 m['forEachIn'] = function(callbacks) {
-                    database.forEachIn(m.getObjectStoreName(), callbacks);
+                    database.forEachIn(objectStoreName, callbacks);
                 }
 
                 return m;
