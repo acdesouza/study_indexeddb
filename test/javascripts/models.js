@@ -1,3 +1,15 @@
+QUnit.module( "Models", {
+    teardown: function() {
+        console.log( "[After test][TODO] Cleanup database." );
+        indexedDB.deleteDatabase("IndexedDbAppTest");
+    }
+});
+
+QUnit.done(function( details ) {
+    console.log( "[After All tests] Destroy test database." );
+    indexedDB.deleteDatabase("IndexedDbAppTest");
+});
+
 QUnit.asyncTest( "should create Custumer", function( assert ) {
     expect( 1 );
 
