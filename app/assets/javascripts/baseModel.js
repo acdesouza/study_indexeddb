@@ -1,4 +1,4 @@
-BaseModel = function(databaseName, version, migrations) {
+var BaseModel = function(databaseName, version, migrations) {
     var database = function() {
         var requestCreateDatabase = indexedDB.open(databaseName, version);
         requestCreateDatabase.onupgradeneeded = function(event) {
