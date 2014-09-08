@@ -147,7 +147,7 @@ var BaseModel = function(databaseName, version, migrations) {
 
                 m.find = function(indexName, value, callbacks) {
                     database.find(objectStoreName, indexName, value, callbacks);
-                }
+                };
 
                 return m;
             };
