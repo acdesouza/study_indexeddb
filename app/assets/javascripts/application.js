@@ -67,6 +67,35 @@ var IndexedDbApp = function() {
             });
 
             showPersistedCustumers();
+
+            var custumerSearchButton = document.getElementById('search_custumer');
+            custumerSearchButton.addEventListener("click", function() {
+                custumer().find('byName',
+                    document.getElementById('by_name').value,
+                    {
+                        success: function(custumer) {
+                            var custumerTRs = document.getElementById('custumers').tBodies[0].getElementsByTagName('tr');
+                            for(var i=0; i < custumerTRs.length; i++){
+                                custumerTRs[i].style.backgroundColor = 'white';
+                            }
+
+                            if(custumer) {
+                                var searchedCustumerTR = custumerTRs["custumer_"+ custumer.id];
+                                searchedCustumerTR.style.backgroundColor = 'yellow';
+                                window.setInterval(function(){
+                                    searchedCustumerTR.style.backgroundColor = 'white';
+                                }, 2000);
+                            }
+                        },
+                        error: function(custumer) {
+                            var custumerTRs = document.getElementById('custumers').tBodies[0].getElementsByTagName('tr');
+                            var searchedCustumerTR = custumerTRs["custumer_"+ custumer.id];
+                            for(var i=0; i < custumerTRs.length; i++){
+                                custumerTRs[i].style.backgroundColor = 'white';
+                            }
+                        }
+                });
+            });
         };
 
         return {

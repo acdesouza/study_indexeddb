@@ -3,8 +3,9 @@ var BaseModel = function(databaseName, version, migrations) {
         var requestCreateDatabase = indexedDB.open(databaseName, version);
         requestCreateDatabase.onupgradeneeded = function(event) {
             var db = requestCreateDatabase.result;
+            var transaction = event.currentTarget.transaction;
 
-            migrations(db, event);
+            migrations(db, transaction, event);
         };
         requestCreateDatabase.onsuccess = function() {
             var db = requestCreateDatabase.result;
@@ -86,6 +87,31 @@ var BaseModel = function(databaseName, version, migrations) {
                         };
                     }
                 });
+            },
+
+            find: function(objectStoreName, indexName, value, callbacks) {
+                console.debug("[DEBUG]", "Looking for: [", value, "] ", indexName);
+                open({
+                    objectStoreName: objectStoreName,
+                    operation: function(store) {
+                        var finder = store.index(indexName).get(value);
+
+                        finder.onsuccess = function(event) {
+                            console.debug("[DEBUG]", "find, ", indexName, ": [", value, "]");
+                            if( callbacks.success ) {
+                                callbacks.success(event.target.result);
+                            }
+                        };
+
+                        finder.onerror = function(event) {
+                            console.error("[ERROR]", "not find: [", event, "]");
+
+                            if( callbacks.error ) {
+                                callbacks.error(event);
+                            }
+                        };
+                    }
+                });
             }
         };
     }();
@@ -118,6 +144,10 @@ var BaseModel = function(databaseName, version, migrations) {
                 m.forEachIn = function(callbacks) {
                     database.forEachIn(objectStoreName, callbacks);
                 };
+
+                m.find = function(indexName, value, callbacks) {
+                    database.find(objectStoreName, indexName, value, callbacks);
+                }
 
                 return m;
             };
