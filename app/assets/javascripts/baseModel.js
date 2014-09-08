@@ -11,7 +11,7 @@ var BaseModel = function(databaseName, version, migrations) {
             db.close();
         };
 
-        function open(options){
+        function open(options) {
             var requestOpenDb = indexedDB.open(databaseName, version);
 
             requestOpenDb.onsuccess = function() {
@@ -31,11 +31,11 @@ var BaseModel = function(databaseName, version, migrations) {
                     db.close();
                 };
             };
-        };
+        }
 
         return {
             put: function(objectStoreName, data, callbacks) {
-                console.log("[DEBUG] put on objectStore: ["+ objectStoreName +"].");
+                console.debug("[DEBUG]", "Put on objectStore: [", objectStoreName, "].");
                 open({
                     objectStoreName: objectStoreName,
                     operation: function(store){
@@ -44,17 +44,15 @@ var BaseModel = function(databaseName, version, migrations) {
                     success: function(id) {
                         data.id = id;
 
-                        console.log("[DEBUG] new customer: [");
-                        console.log(data);
-                        console.log("]");
+                        console.info("[INFO]", "new customer: [", data, "]");
 
                         callbacks.success(data);
                     }
-                })
+                });
             },
 
             destroy: function(objectStoreName, id, callbacks) {
-                console.log("[DEBUG] delete, on objectStore: ["+ objectStoreName +"], id: "+ id +".");
+                console.debug("[DEBUG]", "delete, on objectStore: [", objectStoreName, "], id: ", id, ".");
                 open({
                     objectStoreName: objectStoreName,
                     operation: function(store) {
@@ -67,7 +65,7 @@ var BaseModel = function(databaseName, version, migrations) {
             },
 
             forEachIn: function(objectStoreName, callbacks) {
-                console.log("[DEBUG] forEachIn objectStore: ["+ objectStoreName +"].");
+                console.debug("[DEBUG]", "forEachIn objectStore: [", objectStoreName, "].");
                 open({
                     objectStoreName: objectStoreName,
                     operation: function(store) {
@@ -77,13 +75,11 @@ var BaseModel = function(databaseName, version, migrations) {
 
                         cursorRequest.onsuccess = function(e) {
                             var result = e.target.result;
-                            if(!!result == false)
+                            if(result === false)
                                 return;
 
                             var element = result.value;
-                            console.log("[DEBUG] forEachIn - value: [");
-                            console.log(element);
-                            console.log("]");
+                            console.log("[DEBUG]", " forEachIn - value: [", element, "]");
                             callbacks.success(element);
 
                             result.continue();
@@ -106,25 +102,26 @@ var BaseModel = function(databaseName, version, migrations) {
                     };
                 }
 
-                m['save'] = function(callbacks) {
+                m.save = function(callbacks) {
                     if(attrs.id === undefined || attrs.id === null || attrs.id === "") {
                         delete attrs.id;
                     } else {
                         attrs.id = parseInt(attrs.id);
                     }
                     database.put(objectStoreName, attrs, callbacks);
-                },
+                };
 
-                m['destroy'] = function(callbacks) {
+                m.destroy = function(callbacks) {
                     database.destroy(objectStoreName, attrs.id, callbacks);
-                },
+                };
 
-                m['forEachIn'] = function(callbacks) {
+                m.forEachIn = function(callbacks) {
                     database.forEachIn(objectStoreName, callbacks);
-                }
+                };
 
                 return m;
-            }
+            };
         }
     };
 };
+
