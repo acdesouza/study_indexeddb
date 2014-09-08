@@ -75,7 +75,11 @@ var BaseModel = function(databaseName, version, migrations) {
 
                         cursorRequest.onsuccess = function(e) {
                             var result = e.target.result;
+<<<<<<< HEAD
                             if(result === false)
+=======
+                            if(result === null || result === false)
+>>>>>>> Fix JSHint issues and missuse of console.log.
                                 return;
 
                             var element = result.value;
