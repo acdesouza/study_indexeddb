@@ -5,8 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>IndexedDB Example</title>
-
-    <script src="./assets/javascripts/IndexedDBShim.js"></script>
   </head>
   <body>
     <form id="custumer_search" action="#search">
@@ -44,9 +42,11 @@
       </table>
     </section>
   </body>
-  <script src="./assets/javascripts/baseModel.js"></script>
-  <script src="./assets/javascripts/migrations.js"></script>
-  <script src="./assets/javascripts/database.js"></script>
-  <script src="./assets/javascripts/models.js"></script>
+
+  <script src="./assets/javascripts/lib/models/IndexedDBShim.js"></script>
+  <script src="./assets/javascripts/lib/models/base.js"></script>
+  <script src="./assets/javascripts/db/migrations.js"></script>
+  <script src="./assets/javascripts/db/config.js"></script>
+  <script src="./assets/javascripts/models/all.js"></script>
   <script src="./assets/javascripts/application.js"></script>
 </html>
