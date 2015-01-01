@@ -1,11 +1,11 @@
-var BaseModel = function(databaseName, version, migrations) {
+var BaseModel = function(databaseName, migrations) {
     var database = function() {
-        var requestCreateDatabase = indexedDB.open(databaseName, version);
+        var requestCreateDatabase = indexedDB.open(databaseName, migrations.version);
         requestCreateDatabase.onupgradeneeded = function(event) {
             var db = requestCreateDatabase.result;
             var transaction = event.currentTarget.transaction;
 
-            migrations(db, transaction, event);
+            migrations.run(db, transaction, event);
         };
         requestCreateDatabase.onsuccess = function() {
             var db = requestCreateDatabase.result;
@@ -13,7 +13,7 @@ var BaseModel = function(databaseName, version, migrations) {
         };
 
         function open(options) {
-            var requestOpenDb = indexedDB.open(databaseName, version);
+            var requestOpenDb = indexedDB.open(databaseName, migrations.version);
 
             requestOpenDb.onsuccess = function() {
 

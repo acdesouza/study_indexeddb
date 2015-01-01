@@ -1,2 +1,1 @@
-var Models = BaseModel("IndexedDbApp", 2, migrations);
-
+var Models = BaseModel("IndexedDbApp", migrations);

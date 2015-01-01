@@ -1,1 +1,1 @@
-var Models = BaseModel("IndexedDbAppTest", 1, migrations);
+var Models = BaseModel("IndexedDbAppTest", migrations);
